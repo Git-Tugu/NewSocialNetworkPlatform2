@@ -47,3 +47,10 @@ foreach (var s in platform.StoryService.GetAll())
 {
     Console.WriteLine($" - Story {s.Id} by {s.AuthorId}, expires: {s.ExpiresAt}, views: {s.ViewedBy.Count}");
 }
+
+// Search demo
+Console.WriteLine("\nSearch for 'alice':");
+foreach (var res in platform.SearchService.SearchAll("alice"))
+{
+    Console.WriteLine($" - {res.Type}: {res.Id} => {res.Snippet}");
+}
