@@ -6,14 +6,124 @@ using SocialNetworkPlatform.Enums;
 using SocialNetworkPlatform.Models;
 
 var platform = new Platform();
-bool running = true;
+User currentUser = null;
+bool appRunning = true;
 
-PrintHeader("SocialNetworkPlatform - Interactive Example");
+Console.Clear();
+PrintHeader("SocialNetworkPlatform");
+Console.WriteLine("Welcome to the Social Network Platform!\n");
 
-while (running)
+while (appRunning)
 {
-    PrintMenu();
-    Console.Write("Select an option: ");
+    if (currentUser == null)
+    {
+        DisplayAuthMenu();
+    }
+    else
+    {
+        DisplayMainMenu();
+    }
+}
+
+Console.WriteLine("\nThank you for using SocialNetworkPlatform. Goodbye!\n");
+
+// ============ AUTHENTICATION ============
+
+void DisplayAuthMenu()
+{
+    PrintMenu("AUTHENTICATION MENU");
+    Console.WriteLine("|  1. Create New Account                     |");
+    Console.WriteLine("|  2. Login to Existing Account              |");
+    Console.WriteLine("|  3. Exit Application                       |");
+    Console.WriteLine("+--------------------------------------------+");
+
+    Console.Write("\nSelect an option: ");
+    string choice = Console.ReadLine() ?? "0";
+
+    switch (choice)
+    {
+        case "1":
+            CreateNewAccount();
+            break;
+        case "2":
+            LoginToAccount();
+            break;
+        case "3":
+            appRunning = false;
+            break;
+        default:
+            Console.WriteLine("Invalid option. Please try again.\n");
+            break;
+    }
+}
+
+void CreateNewAccount()
+{
+    Console.Clear();
+    PrintHeader("CREATE NEW ACCOUNT");
+
+    Console.Write("Enter username: ");
+    string username = Console.ReadLine() ?? "";
+
+    Console.Write("Enter display name: ");
+    string displayName = Console.ReadLine() ?? "";
+
+    Console.Write("Enter age: ");
+    if (!byte.TryParse(Console.ReadLine(), out byte age) || age < 1)
+    {
+        Console.WriteLine("Invalid age. Please try again.\n");
+        return;
+    }
+
+    if (platform.UserService.GetAll().Any(u => u.Username == username))
+    {
+        Console.WriteLine("Username already exists. Please try again.\n");
+        return;
+    }
+
+    currentUser = platform.UserService.Create(username, displayName, age);
+    Console.WriteLine($"\nAccount created successfully!");
+    Console.WriteLine($"Welcome, {currentUser.DisplayName}!\n");
+    System.Threading.Thread.Sleep(1500);
+}
+
+void LoginToAccount()
+{
+    Console.Clear();
+    PrintHeader("LOGIN TO ACCOUNT");
+
+    Console.Write("Enter username: ");
+    string username = Console.ReadLine() ?? "";
+
+    var user = platform.UserService.GetAll().FirstOrDefault(u => u.Username == username);
+    if (user != null)
+    {
+        currentUser = user;
+        Console.WriteLine($"\nLogin successful! Welcome, {currentUser.DisplayName}!\n");
+        System.Threading.Thread.Sleep(1500);
+    }
+    else
+    {
+        Console.WriteLine("Username not found. Please try again.\n");
+    }
+}
+
+// ============ MAIN APPLICATION ============
+
+void DisplayMainMenu()
+{
+    Console.Clear();
+    PrintHeader($"MAIN MENU - {currentUser.DisplayName}");
+    Console.WriteLine("|  1. View Feed                              |");
+    Console.WriteLine("|  2. Create Post                            |");
+    Console.WriteLine("|  3. Manage Friends                         |");
+    Console.WriteLine("|  4. View Profile                           |");
+    Console.WriteLine("|  5. Search Users                           |");
+    Console.WriteLine("|  6. View All Posts                         |");
+    Console.WriteLine("|  7. Logout                                 |");
+    Console.WriteLine("+--------------------------------------------+");
+
+    Console.Write("\nSelect an option: ");
     string choice = Console.ReadLine() ?? "0";
 
     try
@@ -21,220 +131,333 @@ while (running)
         switch (choice)
         {
             case "1":
-                RunFullExample();
+                ViewFeed();
                 break;
             case "2":
-                RunUserAndFriendExample();
+                CreatePost();
                 break;
             case "3":
-                RunCommentAndReactionExample();
+                ManageFriends();
                 break;
             case "4":
-                DisplayPlatformStatistics();
+                ViewProfile();
                 break;
-            case "0":
-                running = false;
-                PrintFooter("Goodbye!");
+            case "5":
+                SearchUsers();
+                break;
+            case "6":
+                ViewAllPosts();
+                break;
+            case "7":
+                Logout();
                 break;
             default:
                 Console.WriteLine("Invalid option. Please try again.\n");
+                System.Threading.Thread.Sleep(1000);
                 break;
         }
     }
     catch (Exception ex)
     {
         Console.WriteLine($"\nError: {ex.Message}\n");
+        System.Threading.Thread.Sleep(1500);
     }
 }
 
-// ============ MENU & DISPLAY ============
-
-void PrintMenu()
+void ViewFeed()
 {
-    Console.WriteLine("\n+--------------------------------------------+");
-    Console.WriteLine("|            EXAMPLE MENU                    |");
-    Console.WriteLine("+--------------------------------------------+");
-    Console.WriteLine("|  1. Run Full Example                       |");
-    Console.WriteLine("|  2. User & Friendship Example              |");
-    Console.WriteLine("|  3. Comments & Reactions Example           |");
-    Console.WriteLine("|  4. Display Statistics                     |");
-    Console.WriteLine("|  0. Exit                                   |");
-    Console.WriteLine("+--------------------------------------------+");
-}
+    Console.Clear();
+    PrintHeader("YOUR FEED");
 
-void PrintHeader(string title)
-{
-    Console.WriteLine("\n+----------------------------------------------------+");
-    Console.WriteLine($"| {title.PadRight(52)} |");
-    Console.WriteLine("+----------------------------------------------------+\n");
-}
+    var friendPosts = platform.PostService.GetAll()
+        .Where(p => p.AuthorId == currentUser.Id ||
+                    currentUser.FriendIds.Contains(p.AuthorId))
+        .OrderByDescending(p => p.Id)
+        .ToList();
 
-void PrintSection(string title)
-{
-    Console.WriteLine($"\n+ {title}");
-    Console.WriteLine(new string('-', 60));
-}
-
-void PrintFooter(string message)
-{
-    Console.WriteLine($"\n+ {message}");
-}
-
-// ============ EXAMPLE RUNNERS ============
-
-void RunFullExample()
-{
-    PrintHeader("FULL PLATFORM EXAMPLE");
-
-    Console.WriteLine("Creating 3 users...");
-    var alice = platform.UserService.Create("alice123", "Alice Johnson", 30);
-    var bob = platform.UserService.Create("bob456", "Bob Smith", 28);
-    var charlie = platform.UserService.Create("charlie789", "Charlie Brown", 25);
-
-    Console.WriteLine($"  + {alice.DisplayName} (Age: {alice.Age})");
-    Console.WriteLine($"  + {bob.DisplayName} (Age: {bob.Age})");
-    Console.WriteLine($"  + {charlie.DisplayName} (Age: {charlie.Age})");
-
-    PrintSection("FRIENDSHIP SYSTEM");
-    alice.AddFriend(bob.Id);
-    bob.AddFriend(alice.Id);
-    bob.AddFriend(charlie.Id);
-    charlie.AddFriend(bob.Id);
-
-    Console.WriteLine($"  {alice.DisplayName}'s friends: {string.Join(", ", GetFriendNames(alice))}");
-    Console.WriteLine($"  {bob.DisplayName}'s friends: {string.Join(", ", GetFriendNames(bob))}");
-    Console.WriteLine($"  {charlie.DisplayName}'s friends: {string.Join(", ", GetFriendNames(charlie))}");
-
-    PrintSection("CONTENT CREATION");
-    var post = platform.PostService.Create(new PostDto(alice.Id, "Just finished my morning run! Feeling energized!"));
-    var reel = platform.ReelService.Create(new MediaDto(alice.Id, "https://media.example/reel1.mp4", TimeSpan.FromSeconds(30)));
-    var story = platform.StoryService.Create(new MediaDto(bob.Id, "https://media.example/story1.jpg", null, DateTime.UtcNow.AddHours(24)));
-
-    platform.ReelService.AddView(reel.Id, bob.Id);
-    platform.ReelService.AddView(reel.Id, charlie.Id);
-    platform.StoryService.AddView(story.Id, alice.Id);
-    platform.StoryService.AddView(story.Id, charlie.Id);
-
-    Console.WriteLine($"  + Post by {alice.DisplayName}: \"{post.Content}\"");
-    Console.WriteLine($"  + Reel created (30sec video, {reel.ViewedBy.Count} views)");
-    Console.WriteLine($"  + Story created (24h expiry, {story.ViewedBy.Count} views)");
-
-    PrintSection("COMMENTS & REACTIONS");
-    var c1 = platform.CommentService.Create(new CommentDto(bob.Id, post.Id, "Nice work!"));
-    var c2 = platform.CommentService.Create(new CommentDto(charlie.Id, post.Id, "Inspiring! I should do the same."));
-
-    platform.ReactionService.Create(new ReactionDto(charlie.Id, post.Id, ReactionType.Like));
-    platform.ReactionService.Create(new ReactionDto(bob.Id, post.Id, ReactionType.Love));
-
-    Console.WriteLine($"\n  Post: \"{post.Content}\" by {alice.DisplayName}");
-    Console.WriteLine($"\n  Comments:");
-    Console.WriteLine($"    + {bob.DisplayName}: \"{c1.Text}\"");
-    Console.WriteLine($"    + {charlie.DisplayName}: \"{c2.Text}\"");
-    Console.WriteLine($"\n  Reactions:");
-    Console.WriteLine($"    + {charlie.DisplayName} reacted {ReactionType.Like}");
-    Console.WriteLine($"    + {bob.DisplayName} reacted {ReactionType.Love}");
-
-    PrintFooter("Full example complete!");
-}
-
-void RunUserAndFriendExample()
-{
-    PrintHeader("USER & FRIENDSHIP EXAMPLE");
-
-    Console.WriteLine("Creating users...");
-    var user1 = platform.UserService.Create("user1", "Alice", 25);
-    var user2 = platform.UserService.Create("user2", "Bob", 30);
-    var user3 = platform.UserService.Create("user3", "Charlie", 28);
-
-    Console.WriteLine($"  + {user1.DisplayName}");
-    Console.WriteLine($"  + {user2.DisplayName}");
-    Console.WriteLine($"  + {user3.DisplayName}");
-
-    PrintSection("BUILDING FRIENDSHIPS");
-    user1.AddFriend(user2.Id);
-    user2.AddFriend(user1.Id);
-    user2.AddFriend(user3.Id);
-    user3.AddFriend(user2.Id);
-
-    Console.WriteLine($"  {user1.DisplayName}'s friends: {string.Join(", ", GetFriendNames(user1))}");
-    Console.WriteLine($"  {user2.DisplayName}'s friends: {string.Join(", ", GetFriendNames(user2))}");
-    Console.WriteLine($"  {user3.DisplayName}'s friends: {string.Join(", ", GetFriendNames(user3))}");
-
-    PrintFooter("User & friendship example complete!");
-}
-
-void RunCommentAndReactionExample()
-{
-    PrintHeader("COMMENTS & REACTIONS EXAMPLE");
-
-    var users = new[]
+    if (friendPosts.Count == 0)
     {
-        platform.UserService.Create("Alice", "Alice", 25),
-        platform.UserService.Create("Bob", "Bob", 30),
-        platform.UserService.Create("Charlie", "Charlie", 28)
-    };
+        Console.WriteLine("Your feed is empty. Add friends to see their posts.\n");
+    }
+    else
+    {
+        foreach (var post in friendPosts)
+        {
+            var author = platform.UserService.Get(post.AuthorId);
+            Console.WriteLine("+-----------------------------------+");
+            Console.WriteLine($"| {author.DisplayName,33} |");
+            Console.WriteLine("+-----------------------------------+");
+            Console.WriteLine($"| {(post.Content.Length > 35 ? post.Content.Substring(0, 32) + "..." : post.Content).PadRight(35)} |");
+            Console.WriteLine("+-----------------------------------+");
+            Console.WriteLine($"| Comments: {post.CommentIds.Count,-24} |");
+            Console.WriteLine($"| Reactions: {post.ReactionIds.Count,-24} |");
+            Console.WriteLine("+-----------------------------------+\n");
+        }
+    }
 
-    Console.WriteLine("Creating content...");
-    var post = platform.PostService.Create(new PostDto(users[0].Id, "Check out this amazing post!"));
-    var reel = platform.ReelService.Create(new MediaDto(users[1].Id, "https://example.com/video.mp4", TimeSpan.FromSeconds(15)));
-
-    Console.WriteLine($"  + Post created by {users[0].DisplayName}");
-    Console.WriteLine($"  + Reel created by {users[1].DisplayName}");
-
-    PrintSection("ADDING COMMENTS");
-    var c1 = platform.CommentService.Create(new CommentDto(users[1].Id, post.Id, "Love it!"));
-    var c2 = platform.CommentService.Create(new CommentDto(users[2].Id, post.Id, "Amazing work!"));
-
-    Console.WriteLine($"  Post: \"{post.Content}\" by {users[0].DisplayName}");
-    Console.WriteLine($"\n  + {users[1].DisplayName}: \"{c1.Text}\"");
-    Console.WriteLine($"  + {users[2].DisplayName}: \"{c2.Text}\"");
-
-    PrintSection("ADDING REACTIONS");
-    platform.ReactionService.Create(new ReactionDto(users[0].Id, post.Id, ReactionType.Like));
-    platform.ReactionService.Create(new ReactionDto(users[1].Id, post.Id, ReactionType.Love));
-    platform.ReactionService.Create(new ReactionDto(users[2].Id, post.Id, ReactionType.Wow));
-
-    Console.WriteLine($"  Post: \"{post.Content}\" by {users[0].DisplayName}");
-    Console.WriteLine($"\n  + {users[0].DisplayName} reacted {ReactionType.Like}");
-    Console.WriteLine($"  + {users[1].DisplayName} reacted {ReactionType.Love}");
-    Console.WriteLine($"  + {users[2].DisplayName} reacted {ReactionType.Wow}");
-    Console.WriteLine($"\n  Post now has {post.CommentIds.Count} comments and {post.ReactionIds.Count} reactions");
-
-    PrintFooter("Comments & reactions example complete!");
+    Console.Write("Press Enter to continue...");
+    Console.ReadLine();
 }
 
-void DisplayPlatformStatistics()
+void CreatePost()
 {
-    PrintHeader("PLATFORM STATISTICS");
+    Console.Clear();
+    PrintHeader("CREATE NEW POST");
 
-    var users = platform.UserService.GetAll().Count();
-    var posts = platform.PostService.GetAll().Count();
-    var reels = platform.ReelService.GetAll().Count();
-    var stories = platform.StoryService.GetAll().Count();
-    var comments = platform.CommentService.GetAll().Count();
-    var reactions = platform.ReactionService.GetAll().Count();
+    Console.Write("Enter your post content: ");
+    string content = Console.ReadLine() ?? "";
 
-    Console.WriteLine("+-------------------+-------+");
-    Console.WriteLine("| Type              | Count |");
-    Console.WriteLine("+-------------------+-------+");
-    Console.WriteLine($"| Users             | {users,5} |");
-    Console.WriteLine($"| Posts             | {posts,5} |");
-    Console.WriteLine($"| Reels             | {reels,5} |");
-    Console.WriteLine($"| Stories           | {stories,5} |");
-    Console.WriteLine($"| Comments          | {comments,5} |");
-    Console.WriteLine($"| Reactions         | {reactions,5} |");
-    Console.WriteLine("+-------------------+-------+");
-    var total = users + posts + reels + stories + comments + reactions;
-    Console.WriteLine($"| Total             | {total,5} |");
-    Console.WriteLine("+-------------------+-------+");
+    if (string.IsNullOrWhiteSpace(content))
+    {
+        Console.WriteLine("Post content cannot be empty.\n");
+        System.Threading.Thread.Sleep(1500);
+        return;
+    }
 
-    PrintFooter("Statistics displayed!");
+    var post = platform.PostService.Create(new PostDto(currentUser.Id, content));
+    Console.WriteLine($"\nPost created successfully!\n");
+    System.Threading.Thread.Sleep(1500);
+}
+
+void ManageFriends()
+{
+    bool managing = true;
+    while (managing)
+    {
+        Console.Clear();
+        PrintHeader("MANAGE FRIENDS");
+        Console.WriteLine("|  1. View Friends                           |");
+        Console.WriteLine("|  2. Add Friend                             |");
+        Console.WriteLine("|  3. Remove Friend                          |");
+        Console.WriteLine("|  4. Back to Main Menu                      |");
+        Console.WriteLine("+--------------------------------------------+");
+
+        Console.Write("\nSelect an option: ");
+        string choice = Console.ReadLine() ?? "0";
+
+        switch (choice)
+        {
+            case "1":
+                ViewFriends();
+                break;
+            case "2":
+                AddFriend();
+                break;
+            case "3":
+                RemoveFriend();
+                break;
+            case "4":
+                managing = false;
+                break;
+            default:
+                Console.WriteLine("Invalid option. Please try again.\n");
+                System.Threading.Thread.Sleep(1000);
+                break;
+        }
+    }
+}
+
+void ViewFriends()
+{
+    Console.Clear();
+    PrintHeader("YOUR FRIENDS");
+
+    var friends = currentUser.FriendIds.Select(id => platform.UserService.Get(id)).Where(f => f != null).ToList();
+
+    if (friends.Count == 0)
+    {
+        Console.WriteLine("You have no friends yet.\n");
+    }
+    else
+    {
+        foreach (var friend in friends)
+        {
+            Console.WriteLine($"+ {friend.DisplayName} (Age: {friend.Age})");
+        }
+        Console.WriteLine("");
+    }
+
+    Console.Write("Press Enter to continue...");
+    Console.ReadLine();
+}
+
+void AddFriend()
+{
+    Console.Clear();
+    PrintHeader("ADD FRIEND");
+
+    Console.Write("Enter username of friend to add: ");
+    string username = Console.ReadLine() ?? "";
+
+    var friend = platform.UserService.GetAll().FirstOrDefault(u => u.Username == username);
+    if (friend == null)
+    {
+        Console.WriteLine("User not found.\n");
+        System.Threading.Thread.Sleep(1500);
+        return;
+    }
+
+    if (friend.Id == currentUser.Id)
+    {
+        Console.WriteLine("You cannot add yourself as a friend.\n");
+        System.Threading.Thread.Sleep(1500);
+        return;
+    }
+
+    if (currentUser.FriendIds.Contains(friend.Id))
+    {
+        Console.WriteLine("Already friends with this user.\n");
+        System.Threading.Thread.Sleep(1500);
+        return;
+    }
+
+    currentUser.AddFriend(friend.Id);
+    Console.WriteLine($"Added {friend.DisplayName} as a friend!\n");
+    System.Threading.Thread.Sleep(1500);
+}
+
+void RemoveFriend()
+{
+    Console.Clear();
+    PrintHeader("REMOVE FRIEND");
+
+    Console.Write("Enter username of friend to remove: ");
+    string username = Console.ReadLine() ?? "";
+
+    var friend = platform.UserService.GetAll().FirstOrDefault(u => u.Username == username);
+    if (friend == null)
+    {
+        Console.WriteLine("User not found.\n");
+        System.Threading.Thread.Sleep(1500);
+        return;
+    }
+
+    if (!currentUser.FriendIds.Contains(friend.Id))
+    {
+        Console.WriteLine("Not friends with this user.\n");
+        System.Threading.Thread.Sleep(1500);
+        return;
+    }
+
+    currentUser.RemoveFriend(friend.Id);
+    Console.WriteLine($"Removed {friend.DisplayName} from friends.\n");
+    System.Threading.Thread.Sleep(1500);
+}
+
+void ViewProfile()
+{
+    Console.Clear();
+    PrintHeader(currentUser.DisplayName.ToUpper());
+
+    Console.WriteLine("+-----------------------------------+");
+    Console.WriteLine($"| Age: {currentUser.Age,-28} |");
+    Console.WriteLine($"| Friends: {currentUser.FriendIds.Count,-25} |");
+    Console.WriteLine($"| Posts: {platform.PostService.GetAll().Count(p => p.AuthorId == currentUser.Id),-27} |");
+    Console.WriteLine("+-----------------------------------+");
+
+    Console.WriteLine("\nYour Posts:");
+    var userPosts = platform.PostService.GetAll().Where(p => p.AuthorId == currentUser.Id).ToList();
+
+    if (userPosts.Count == 0)
+    {
+        Console.WriteLine("You have no posts yet.\n");
+    }
+    else
+    {
+        foreach (var post in userPosts)
+        {
+            Console.WriteLine($"+ {post.Content}");
+            Console.WriteLine($"  {post.CommentIds.Count} comments, {post.ReactionIds.Count} reactions\n");
+        }
+    }
+
+    Console.Write("Press Enter to continue...");
+    Console.ReadLine();
+}
+
+void SearchUsers()
+{
+    Console.Clear();
+    PrintHeader("SEARCH USERS");
+
+    Console.Write("Enter username to search: ");
+    string searchTerm = Console.ReadLine() ?? "";
+
+    var results = platform.UserService.GetAll()
+        .Where(u => u.Username.Contains(searchTerm) || u.DisplayName.Contains(searchTerm))
+        .ToList();
+
+    if (results.Count == 0)
+    {
+        Console.WriteLine("No users found.\n");
+    }
+    else
+    {
+        Console.WriteLine("\nSearch Results:");
+        foreach (var user in results)
+        {
+            bool isFriend = currentUser.FriendIds.Contains(user.Id);
+            string status = user.Id == currentUser.Id ? "[YOU]" : (isFriend ? "[FRIEND]" : "[NOT FRIEND]");
+            Console.WriteLine($"+ {user.DisplayName} (@{user.Username}) {status}");
+        }
+        Console.WriteLine("");
+    }
+
+    Console.Write("Press Enter to continue...");
+    Console.ReadLine();
+}
+
+void ViewAllPosts()
+{
+    Console.Clear();
+    PrintHeader("ALL POSTS");
+
+    var allPosts = platform.PostService.GetAll().OrderByDescending(p => p.Id).ToList();
+
+    if (allPosts.Count == 0)
+    {
+        Console.WriteLine("No posts yet.\n");
+    }
+    else
+    {
+        foreach (var post in allPosts)
+        {
+            var author = platform.UserService.Get(post.AuthorId);
+            Console.WriteLine("+-----------------------------------+");
+            Console.WriteLine($"| {author.DisplayName,33} |");
+            Console.WriteLine("+-----------------------------------+");
+            Console.WriteLine($"| {(post.Content.Length > 35 ? post.Content.Substring(0, 32) + "..." : post.Content).PadRight(35)} |");
+            Console.WriteLine("+-----------------------------------+");
+            Console.WriteLine($"| Comments: {post.CommentIds.Count,-24} |");
+            Console.WriteLine($"| Reactions: {post.ReactionIds.Count,-24} |");
+            Console.WriteLine("+-----------------------------------+\n");
+        }
+    }
+
+    Console.Write("Press Enter to continue...");
+    Console.ReadLine();
+}
+
+void Logout()
+{
+    currentUser = null;
+    Console.WriteLine("Logged out successfully.\n");
+    System.Threading.Thread.Sleep(1500);
 }
 
 
 // ============ HELPER METHODS ============
 
-System.Collections.Generic.IEnumerable<string> GetFriendNames(User user)
+void PrintHeader(string title)
 {
-    return user.FriendIds.Select(id => platform.UserService.Get(id)?.DisplayName ?? "Unknown").Where(n => n != null);
+    Console.WriteLine("+--------------------------------------------+");
+    Console.WriteLine($"| {title.PadRight(42)} |");
+    Console.WriteLine("+--------------------------------------------+");
+}
+
+void PrintMenu(string title)
+{
+    Console.WriteLine("+--------------------------------------------+");
+    Console.WriteLine($"| {title.PadRight(42)} |");
+    Console.WriteLine("+--------------------------------------------+");
 }
