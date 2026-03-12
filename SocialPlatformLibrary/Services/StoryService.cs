@@ -10,56 +10,28 @@ namespace SocialNetworkPlatform.Services
     /// <summary>
     /// Service that manages <see cref="Story"/> lifecycle and view operations.
     /// </summary>
-    public class StoryService : IStoryService
+    public class StoryService : CrudService<Story, MediaDto>, IStoryService
     {
         private readonly StoryRepo _repo;
+        private readonly ICommentService _comments;
+        private readonly IReactionService _reactions;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="StoryService"/> class.
-        /// </summary>
-        /// <param name="repo">Repository used to persist stories.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repo"/> is null.</exception>
-        public StoryService(StoryRepo repo)
+        public StoryService(StoryRepo repo, ICommentService comments, IReactionService reactions)
+            : base(repo, dto => new Story { AuthorId = dto.AuthorId, MediaUrl = dto.MediaUrl ?? string.Empty, ExpiresAt = dto.ExpiresAt ?? DateTime.UtcNow.AddHours(24) })
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _comments = comments ?? throw new ArgumentNullException(nameof(comments));
+            _reactions = reactions ?? throw new ArgumentNullException(nameof(reactions));
         }
 
-        /// <summary>
-        /// Creates and persists a new <see cref="Story"/> from the provided <see cref="MediaDto"/>.
-        /// </summary>
-        /// <param name="dto">Data transfer object containing story information (author, media, optional expiry).</param>
-        /// <returns>The created <see cref="Story"/> instance (Id populated).</returns>
-        public Story Create(MediaDto dto)
-        {
-            var s = new Story
-            {
-                AuthorId = dto.AuthorId,
-                MediaUrl = dto.MediaUrl ?? string.Empty,
-                ExpiresAt = dto.ExpiresAt ?? DateTime.UtcNow.AddHours(24)
-            };
-            _repo.Add(s);
-            return s;
-        }
 
         /// <summary>
-        /// Retrieves a story by identifier.
+        /// Returns all non-expired stories. Expired stories are automatically 
+        /// removed by a background job that calls <see cref="RemoveExpiredStories"/> periodically.
         /// </summary>
-        /// <param name="id">The story identifier.</param>
-        /// <returns>The matching <see cref="Story"/>, or <c>null</c> when not found.</returns>
-        public Story? Get(Guid id) => _repo.Get(id);
-
-        /// <summary>
-        /// Returns all non-expired stories currently stored in the repository.
-        /// </summary>
-        /// <returns>An enumerable of active <see cref="Story"/> instances.</returns>
+        /// <returns>Stories (existing)</returns>
         public IEnumerable<Story> GetAll() => _repo.GetAll().Where(s => s.ExpiresAt > DateTime.UtcNow);
 
-        /// <summary>
-        /// Registers that a user has viewed the specified story.
-        /// If the user already viewed the story, the call is a no-op.
-        /// </summary>
-        /// <param name="storyId">The story identifier.</param>
-        /// <param name="userId">The user who viewed the story.</param>
         public void AddView(Guid storyId, Guid userId)
         {
             var s = _repo.Get(storyId);
@@ -67,18 +39,29 @@ namespace SocialNetworkPlatform.Services
             if (!s.ViewedBy.Contains(userId)) s.ViewedBy.Add(userId);
         }
 
+
         /// <summary>
-        /// Removes expired stories from the repository. Stories whose <see cref="Story.ExpiresAt"/>
-        /// is in the past will be deleted.
+        /// Scans for expired stories and removes them from the repository. 
         /// </summary>
-        /// <remarks>
-        /// This method should be called periodically (for example by a scheduler) to keep the
-        /// repository free of expired items.
-        /// </remarks>
         public void RemoveExpiredStories()
         {
             var expired = _repo.GetAll().Where(s => s.ExpiresAt <= DateTime.UtcNow).ToArray();
             foreach (var e in expired) _repo.Remove(e.Id);
+        }
+
+        /// <summary>
+        /// Delete a story and cascade delete all its comments and reactions.
+        /// </summary>
+        public override void Delete(Guid id)
+        {
+            // Delete all comments on this story
+            _comments.DeleteByTarget(id);
+            
+            // Delete all reactions on this story
+            _reactions.DeleteByTarget(id);
+            
+            // Delete the story itself
+            base.Delete(id);
         }
     }
 }

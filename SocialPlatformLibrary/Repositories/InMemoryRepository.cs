@@ -7,7 +7,7 @@ using SocialNetworkPlatform.Models;
 namespace SocialNetworkPlatform.Repositories
 {
     /// <summary>
-    /// Thread-safe in-memory repository implementing IRepository.
+    /// Thread-safe in-memory repository implementing IRepository. Generated with AI. I kept it 'Cause it seems interesting to me.
     /// </summary>
     public class InMemoryRepository<T> : IRepository<T> where T : IIdentifiable
     {

@@ -9,54 +9,59 @@ namespace SocialNetworkPlatform.Services
     /// <summary>
     /// Basic post service implementing IPostService.
     /// </summary>
-    public class PostService : IPostService
+    public class PostService : CrudService<Post, PostDto>, IPostService
     {
-        private readonly PostRepo _repo;
+        private readonly PostRepo _typedRepo;
         private readonly UserRepo _users;
+        private readonly ICommentService _comments;
+        private readonly IReactionService _reactions;
 
-        public PostService(PostRepo repo, UserRepo users)
+        public PostService(PostRepo repo, UserRepo users, ICommentService comments, IReactionService reactions)
+            : base(repo, dto => new Post { AuthorId = dto.AuthorId, Content = dto.Content ?? string.Empty })
         {
-            _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _typedRepo = repo ?? throw new ArgumentNullException(nameof(repo));
             _users = users ?? throw new ArgumentNullException(nameof(users));
+            _comments = comments ?? throw new ArgumentNullException(nameof(comments));
+            _reactions = reactions ?? throw new ArgumentNullException(nameof(reactions));
         }
 
-        public Post Create(PostDto dto)
-        {
-            var post = new Post
-            {
-                AuthorId = dto.AuthorId,
-                Content = dto.Content ?? string.Empty
-            };
-            _repo.Add(post);
-            return post;
-        }
-
-        public Post? Get(Guid id) => _repo.Get(id);
-
-        public IEnumerable<Post> GetAll() => _repo.GetAll();
-
-        public void Delete(Guid id)
-        {
-            _repo.Remove(id);
-        }
-
+        /// <summary>
+        /// Edit the content of a post. Only the author can edit their post.
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <param name="newContent">New post content</param>
         public void Edit(Guid id, string newContent)
         {
-            var p = _repo.Get(id);
+            var p = _typedRepo.Get(id);
             if (p == null) return;
             p.Edit(newContent);
         }
 
+
+        /// <summary>
+        /// User can change the visibility of their post. Only the author can change visibility.
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <param name="visibility">Post visibility identifier</param>
         public void ChangeVisibility(Guid id, SocialNetworkPlatform.Enums.Visibility visibility)
         {
-            var p = _repo.Get(id);
+            var p = _typedRepo.Get(id);
             if (p == null) return;
             p.ChangeVisibility(visibility);
         }
 
+
+        /// <summary>
+        /// Share a post. This creates a new post with the same content and visibility, but with a
+        /// reference to the original post. The sharing user becomes the author of the new post.
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <param name="byUserId">User ID</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public Post Share(Guid id, Guid byUserId)
         {
-            var original = _repo.Get(id) ?? throw new InvalidOperationException("Original post not found");
+            var original = _typedRepo.Get(id) ?? throw new InvalidOperationException("Original post not found");
             var shared = new Post
             {
                 AuthorId = byUserId,
@@ -64,13 +69,22 @@ namespace SocialNetworkPlatform.Services
                 SharedFrom = original.Id,
                 Visibility = original.Visibility
             };
-            _repo.Add(shared);
+            _typedRepo.Add(shared);
             return shared;
         }
 
+
+        /// <summary>
+        /// Manages who can view a post based on its visibility setting. Public posts are visible to everyone,
+        /// private posts are only visible to the author, and friends-only posts are visible to the author's 
+        /// friends and the author themselves.
+        /// </summary>
+        /// <param name="postId">Post ID</param>
+        /// <param name="viewerUserId">Viewer User ID</param>
+        /// <returns></returns>
         public bool CanView(Guid postId, Guid viewerUserId)
         {
-            var p = _repo.Get(postId);
+            var p = _typedRepo.Get(postId);
             if (p == null) return false;
             if (p.Visibility == SocialNetworkPlatform.Enums.Visibility.Public) return true;
             if (p.Visibility == SocialNetworkPlatform.Enums.Visibility.Private) return p.AuthorId == viewerUserId;
@@ -78,6 +92,21 @@ namespace SocialNetworkPlatform.Services
             var author = _users?.Get(p.AuthorId);
             if (author == null) return false;
             return author.FriendIds.Contains(viewerUserId) || p.AuthorId == viewerUserId;
+        }
+
+        /// <summary>
+        /// Delete a post and cascade delete all its comments and reactions.
+        /// </summary>
+        public override void Delete(Guid id)
+        {
+            // Delete all comments on this post
+            _comments.DeleteByTarget(id);
+            
+            // Delete all reactions on this post
+            _reactions.DeleteByTarget(id);
+            
+            // Delete the post itself
+            base.Delete(id);
         }
     }
 }
