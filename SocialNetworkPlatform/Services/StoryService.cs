@@ -13,11 +13,15 @@ namespace SocialNetworkPlatform.Services
     public class StoryService : CrudService<Story, MediaDto>, IStoryService
     {
         private readonly StoryRepo _repo;
+        private readonly ICommentService _comments;
+        private readonly IReactionService _reactions;
 
-        public StoryService(StoryRepo repo)
+        public StoryService(StoryRepo repo, ICommentService comments, IReactionService reactions)
             : base(repo, dto => new Story { AuthorId = dto.AuthorId, MediaUrl = dto.MediaUrl ?? string.Empty, ExpiresAt = dto.ExpiresAt ?? DateTime.UtcNow.AddHours(24) })
         {
             _repo = repo ?? throw new ArgumentNullException(nameof(repo));
+            _comments = comments ?? throw new ArgumentNullException(nameof(comments));
+            _reactions = reactions ?? throw new ArgumentNullException(nameof(reactions));
         }
 
         public IEnumerable<Story> GetAll() => _repo.GetAll().Where(s => s.ExpiresAt > DateTime.UtcNow);
@@ -33,6 +37,21 @@ namespace SocialNetworkPlatform.Services
         {
             var expired = _repo.GetAll().Where(s => s.ExpiresAt <= DateTime.UtcNow).ToArray();
             foreach (var e in expired) _repo.Remove(e.Id);
+        }
+
+        /// <summary>
+        /// Delete a story and cascade delete all its comments and reactions.
+        /// </summary>
+        public override void Delete(Guid id)
+        {
+            // Delete all comments on this story
+            _comments.DeleteByTarget(id);
+            
+            // Delete all reactions on this story
+            _reactions.DeleteByTarget(id);
+            
+            // Delete the story itself
+            base.Delete(id);
         }
     }
 }

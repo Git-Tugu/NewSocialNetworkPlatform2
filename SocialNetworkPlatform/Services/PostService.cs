@@ -13,12 +13,16 @@ namespace SocialNetworkPlatform.Services
     {
         private readonly PostRepo _typedRepo;
         private readonly UserRepo _users;
+        private readonly ICommentService _comments;
+        private readonly IReactionService _reactions;
 
-        public PostService(PostRepo repo, UserRepo users)
+        public PostService(PostRepo repo, UserRepo users, ICommentService comments, IReactionService reactions)
             : base(repo, dto => new Post { AuthorId = dto.AuthorId, Content = dto.Content ?? string.Empty })
         {
             _typedRepo = repo ?? throw new ArgumentNullException(nameof(repo));
             _users = users ?? throw new ArgumentNullException(nameof(users));
+            _comments = comments ?? throw new ArgumentNullException(nameof(comments));
+            _reactions = reactions ?? throw new ArgumentNullException(nameof(reactions));
         }
 
         public void Edit(Guid id, string newContent)
@@ -59,6 +63,21 @@ namespace SocialNetworkPlatform.Services
             var author = _users?.Get(p.AuthorId);
             if (author == null) return false;
             return author.FriendIds.Contains(viewerUserId) || p.AuthorId == viewerUserId;
+        }
+
+        /// <summary>
+        /// Delete a post and cascade delete all its comments and reactions.
+        /// </summary>
+        public override void Delete(Guid id)
+        {
+            // Delete all comments on this post
+            _comments.DeleteByTarget(id);
+            
+            // Delete all reactions on this post
+            _reactions.DeleteByTarget(id);
+            
+            // Delete the post itself
+            base.Delete(id);
         }
     }
 }

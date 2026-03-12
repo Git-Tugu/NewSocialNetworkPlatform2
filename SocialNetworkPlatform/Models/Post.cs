@@ -7,7 +7,7 @@ namespace SocialNetworkPlatform.Models
     /// <summary>
     /// Represents a user-generated post.
     /// </summary>
-    public class Post : ContentItem
+    public class Post : ContentItem, ICommentable, IReactable
     {
         /// <summary>
         /// Textual content of the post.

@@ -13,5 +13,6 @@ namespace SocialNetworkPlatform.Services
         void Unfollow(Guid pageId, Guid userId);
         PageEvent CreateEvent(Guid pageId, string title, string description, DateTime startsAt, DateTime endsAt, string location);
         void DeleteEvent(Guid eventId);
+        void Delete(Guid pageId);
     }
 }

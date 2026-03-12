@@ -6,7 +6,7 @@ namespace SocialNetworkPlatform.Models
     /// <summary>
     /// Ephemeral story content that expires after a time window.
     /// </summary>
-    public class Story : ContentItem
+    public class Story : ContentItem, ICommentable, IReactable
     {
         /// <summary>
         /// URL or identifier for the media content of the story.
@@ -22,5 +22,15 @@ namespace SocialNetworkPlatform.Models
         /// Users who have viewed the story.
         /// </summary>
         public List<Guid> ViewedBy { get; } = new();
+
+        /// <summary>
+        /// Comments attached to this story.
+        /// </summary>
+        public List<Guid> CommentIds { get; } = new();
+
+        /// <summary>
+        /// Reactions attached to this story.
+        /// </summary>
+        public List<Guid> ReactionIds { get; } = new();
     }
 }

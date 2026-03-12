@@ -10,7 +10,7 @@ namespace SocialNetworkPlatform.Models
     /// Represents an event created by a <see cref="Page"/>.
     /// Instances are intended to be created by <see cref="Page"/> only.
     /// </summary>
-    public class PageEvent : IIdentifiable
+    public class PageEvent : IIdentifiable, ICommentable, IReactable
     {
         /// <inheritdoc />
         public Guid Id { get; } = Guid.NewGuid();
@@ -49,6 +49,16 @@ namespace SocialNetworkPlatform.Models
         /// Users attending the event.
         /// </summary>
         public List<Guid> AttendeeIds { get; } = new();
+
+        /// <summary>
+        /// Comments attached to this event.
+        /// </summary>
+        public List<Guid> CommentIds { get; } = new();
+
+        /// <summary>
+        /// Reactions attached to this event.
+        /// </summary>
+        public List<Guid> ReactionIds { get; } = new();
 
         /// <summary>
         /// Internal constructor to ensure only code in this assembly (e.g. <see cref="Page"/>)
