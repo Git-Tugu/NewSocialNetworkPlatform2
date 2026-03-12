@@ -1,3 +1,7 @@
 <Solution>
+  <Project Path="Facebook_copy/Facebook_copy.csproj" Id="ec3748a4-0da5-4b1d-a3c9-776862b4a17a" />
+  <Project Path="ImageFitting/ImageFitting.csproj" Id="360601da-0914-4095-a6b1-d93a8a2ca8a0" />
   <Project Path="SocialNetworkPlatform/SocialNetworkPlatform.csproj" />
+  <Project Path="SocialNetworkWindowsForms/SocialNetworkWindowsForms.csproj" Id="216f89a8-51fd-4bd5-9b3b-a73732be7ed6" />
+  <Project Path="SocialPlatformLibrary/SocialPlatformLibrary.csproj" Id="0a76cc08-b046-4454-bc00-4c67dd6831a2" />
 </Solution>
