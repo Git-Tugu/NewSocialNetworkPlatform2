@@ -4,5 +4,3 @@
 
 `It is my very first project that I have written it in C#`
 
-<h2>File structure</h2>
-
