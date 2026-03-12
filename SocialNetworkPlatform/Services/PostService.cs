@@ -25,6 +25,11 @@ namespace SocialNetworkPlatform.Services
             _reactions = reactions ?? throw new ArgumentNullException(nameof(reactions));
         }
 
+        /// <summary>
+        /// Edit the content of a post. Only the author can edit their post.
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <param name="newContent">New post content</param>
         public void Edit(Guid id, string newContent)
         {
             var p = _typedRepo.Get(id);
@@ -32,6 +37,12 @@ namespace SocialNetworkPlatform.Services
             p.Edit(newContent);
         }
 
+
+        /// <summary>
+        /// User can change the visibility of their post. Only the author can change visibility.
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <param name="visibility">Post visibility identifier</param>
         public void ChangeVisibility(Guid id, SocialNetworkPlatform.Enums.Visibility visibility)
         {
             var p = _typedRepo.Get(id);
@@ -39,6 +50,15 @@ namespace SocialNetworkPlatform.Services
             p.ChangeVisibility(visibility);
         }
 
+
+        /// <summary>
+        /// Share a post. This creates a new post with the same content and visibility, but with a
+        /// reference to the original post. The sharing user becomes the author of the new post.
+        /// </summary>
+        /// <param name="id">Post ID</param>
+        /// <param name="byUserId">User ID</param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         public Post Share(Guid id, Guid byUserId)
         {
             var original = _typedRepo.Get(id) ?? throw new InvalidOperationException("Original post not found");
@@ -53,6 +73,15 @@ namespace SocialNetworkPlatform.Services
             return shared;
         }
 
+
+        /// <summary>
+        /// Manages who can view a post based on its visibility setting. Public posts are visible to everyone,
+        /// private posts are only visible to the author, and friends-only posts are visible to the author's 
+        /// friends and the author themselves.
+        /// </summary>
+        /// <param name="postId">Post ID</param>
+        /// <param name="viewerUserId">Viewer User ID</param>
+        /// <returns></returns>
         public bool CanView(Guid postId, Guid viewerUserId)
         {
             var p = _typedRepo.Get(postId);

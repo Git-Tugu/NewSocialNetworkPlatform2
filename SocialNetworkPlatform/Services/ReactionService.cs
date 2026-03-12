@@ -59,13 +59,37 @@ namespace SocialNetworkPlatform.Services
             return reaction;
         }
 
+
+        /// <summary>
+        /// Get a reaction by ID. Returns null if not found.Rreactions are 
+        /// not directly associated with a single content type, so we search the reaction repository directly.
+        /// </summary>
+        /// <param name="id">Reaction ID</param>
+        /// <returns>Reaction</returns>
         public Reaction? Get(Guid id) => _repo.Get(id);
 
+
+        /// <summary>
+        /// Return all reactions. In a real application, this would likely be paginated and filtered by target or author.
+        /// </summary>
+        /// <returnsReactions></returns>
         public IEnumerable<Reaction> GetAll() => _repo.GetAll();
 
+
+        /// <summary>
+        /// Get all reactions for a specific target entity (Post, Reel, Story, PageEvent, or Comment). Returns empty if none found.
+        /// </summary>
+        /// <param name="targetId">Reaction ID</param>
+        /// <returns>Reaction</returns>
         public IEnumerable<Reaction> GetByTarget(Guid targetId) =>
             _repo.GetAll().Where(r => r.TargetId == targetId).ToList();
 
+
+        /// <summary>
+        /// Delete a reaction by ID. Also removes the reaction ID from the target entity's
+        /// list of reactions. If the reaction doesn't exist, does nothing.
+        /// </summary>
+        /// <param name="id">Reaction ID</param>
         public void Delete(Guid id)
         {
             var reaction = _repo.Get(id);
@@ -76,6 +100,13 @@ namespace SocialNetworkPlatform.Services
             _repo.Remove(id);
         }
 
+
+        /// <summary>
+        /// Remove a reaction ID from the target entity's list of reactions. 
+        /// This is used when deleting a reaction to maintain data integrity.
+        /// </summary>
+        /// <param name="reactionId"Reaction ID></param>
+        /// <param name="targetId">Target Media ID</param>
         public void RemoveFromTarget(Guid reactionId, Guid targetId)
         {
             var target = GetReactableTarget(targetId);

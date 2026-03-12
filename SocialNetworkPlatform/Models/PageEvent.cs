@@ -64,6 +64,12 @@ namespace SocialNetworkPlatform.Models
         /// Internal constructor to ensure only code in this assembly (e.g. <see cref="Page"/>)
         /// can create events.
         /// </summary>
+        /// <param name="startsAt">Event start time (UTC).</param>
+        /// <param name="location">Event location.</param>
+        /// <param name="endsAt">Event end time (UTC).</param>
+        /// <param name="description">Event description.</param>
+        /// <param name="pageId">Owning page id.</param>
+        /// <param name="title">Event title.</param>
         internal PageEvent(Guid pageId, string title, string description, DateTime startsAt, DateTime endsAt, string location)
         {
             PageId = pageId;

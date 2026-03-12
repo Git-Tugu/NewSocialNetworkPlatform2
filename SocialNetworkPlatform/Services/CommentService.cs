@@ -39,6 +39,8 @@ namespace SocialNetworkPlatform.Services
         /// <summary>
         /// Create a comment on a target entity (Post, Reel, Story, or PageEvent).
         /// </summary>
+        /// <param name="dto">Data transfer object containing comment details.</param>
+        /// <returns>The created Comment object.</returns>
         public Comment Create(CommentDto dto)
         {
             if (dto == null) throw new ArgumentNullException(nameof(dto));
@@ -61,13 +63,34 @@ namespace SocialNetworkPlatform.Services
             return comment;
         }
 
+        /// <summary>
+        /// Returns a comment by its ID, or null if not found. Does not include reactions or author details.
+        /// </summary>
+        /// <param name="id">Comment ID</param>
+        /// <returns> Comment</returns>
         public Comment? Get(Guid id) => _repo.Get(id);
 
+        /// <summary>
+        /// Returns all comments. In a real implementation, this would likely be paginated and filtered by target.
+        /// </summary>
+        /// <returns>All comments</returns>
         public IEnumerable<Comment> GetAll() => _repo.GetAll();
 
+        /// <summary>
+        /// Returns all comments for a specific target entity (Post, Reel, Story, or PageEvent).
+        /// </summary>
+        /// <param name="targetId"></param>
+        /// <returns>Specific comments</returns>
         public IEnumerable<Comment> GetByTarget(Guid targetId) =>
             _repo.GetAll().Where(c => c.TargetId == targetId).ToList();
 
+
+        /// <summary>
+        /// Delete a comment by its ID. Also deletes all reactions on the comment 
+        /// (if reactions service is available) and removes the comment ID from the target entity's CommentIds list.
+        /// In other words, this performs cascade deletion of reactions and cleans up references on the target entity.
+        /// </summary>
+        /// <param name="id"></param>
         public void Delete(Guid id)
         {
             var comment = _repo.Get(id);
@@ -84,6 +107,11 @@ namespace SocialNetworkPlatform.Services
             _repo.Remove(id);
         }
 
+        /// <summary>
+        /// Delete a comment from a target entity's CommentIds list. This is used when a comment is deleted to clean up references on the target entity.
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <param name="targetId"></param>
         public void RemoveFromTarget(Guid commentId, Guid targetId)
         {
             var target = GetCommentableTarget(targetId);

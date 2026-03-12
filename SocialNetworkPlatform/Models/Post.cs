@@ -37,6 +37,7 @@ namespace SocialNetworkPlatform.Models
         /// <summary>
         /// Edit the content of the post. Caller should ensure authorization.
         /// </summary>
+        /// <param name="newContent">Updated content</param>
         public void Edit(string newContent)
         {
             Content = newContent ?? Content;
@@ -45,6 +46,7 @@ namespace SocialNetworkPlatform.Models
         /// <summary>
         /// Change visibility of the post.
         /// </summary>
+        /// <param name="visibility">New visibility setting</param>
         public void ChangeVisibility(Visibility visibility)
         {
             Visibility = visibility;
@@ -53,6 +55,7 @@ namespace SocialNetworkPlatform.Models
         /// <summary>
         /// Mark this post as shared from another post id.
         /// </summary>
+        /// <param name="originalPostId">Original post id this was shared from</param>
         public void ShareFrom(Guid originalPostId)
         {
             if (originalPostId == Guid.Empty) throw new ArgumentException("Invalid original post id", nameof(originalPostId));

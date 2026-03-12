@@ -4,6 +4,9 @@ using System.Collections.Generic;
 
 namespace SocialNetworkPlatform.Services
 {
+    /// <summary>
+    /// Event is specific to only Pages, so it is defined here instead of in Models.
+    /// </summary>
     public interface IPageService
     {
         Page Create(string name, string description, Guid ownerId);

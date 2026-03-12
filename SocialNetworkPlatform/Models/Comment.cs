@@ -5,7 +5,7 @@ namespace SocialNetworkPlatform.Models
 {
     /// <summary>
     /// Comment on any commentable content (post, reel, story, event).
-    /// Comments can also be reacted to.
+    /// Comments can also be reacted too.
     /// </summary>
     public class Comment : ContentItem, IReactable
     {

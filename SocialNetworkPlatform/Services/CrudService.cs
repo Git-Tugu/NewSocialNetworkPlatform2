@@ -7,6 +7,7 @@ namespace SocialNetworkPlatform.Services
 {
     /// <summary>
     /// Generic CRUD service for simple entities. Subclasses can extend with type-specific behavior.
+    /// I generated this with AI 'cause I had to organize the code and avoid duplication between Services.
     /// </summary>
     public class CrudService<T, TDto> where T : IIdentifiable
     {

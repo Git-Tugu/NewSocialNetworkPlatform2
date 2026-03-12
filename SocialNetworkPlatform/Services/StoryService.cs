@@ -24,6 +24,12 @@ namespace SocialNetworkPlatform.Services
             _reactions = reactions ?? throw new ArgumentNullException(nameof(reactions));
         }
 
+
+        /// <summary>
+        /// Returns all non-expired stories. Expired stories are automatically 
+        /// removed by a background job that calls <see cref="RemoveExpiredStories"/> periodically.
+        /// </summary>
+        /// <returns>Stories (existing)</returns>
         public IEnumerable<Story> GetAll() => _repo.GetAll().Where(s => s.ExpiresAt > DateTime.UtcNow);
 
         public void AddView(Guid storyId, Guid userId)
@@ -33,6 +39,10 @@ namespace SocialNetworkPlatform.Services
             if (!s.ViewedBy.Contains(userId)) s.ViewedBy.Add(userId);
         }
 
+
+        /// <summary>
+        /// Scans for expired stories and removes them from the repository. 
+        /// </summary>
         public void RemoveExpiredStories()
         {
             var expired = _repo.GetAll().Where(s => s.ExpiresAt <= DateTime.UtcNow).ToArray();
