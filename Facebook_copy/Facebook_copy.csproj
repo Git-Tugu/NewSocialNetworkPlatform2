@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Common\" />
+    <ProjectReference Include="..\SocialPlatformLibrary\SocialPlatformLibrary.csproj" />
   </ItemGroup>
 
 </Project>

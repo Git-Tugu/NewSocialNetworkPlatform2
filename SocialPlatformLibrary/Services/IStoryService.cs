@@ -12,6 +12,5 @@ namespace SocialNetworkPlatform.Services
         IEnumerable<Story> GetAll();
         void AddView(Guid storyId, Guid userId);
         void RemoveExpiredStories();
-        void Delete(Guid id);
     }
 }

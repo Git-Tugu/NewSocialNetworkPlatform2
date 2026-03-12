@@ -53,15 +53,5 @@ namespace SocialNetworkPlatform.Services
             _eventRepo.Add(e);
             return e;
         }
-
-        public void DeleteEvent(Guid eventId)
-        {
-            _eventRepo.Remove(eventId);
-            // Also remove from any page that references it
-            foreach (var p in _repo.GetAll())
-            {
-                if (p.EventIds.Contains(eventId)) p.EventIds.Remove(eventId);
-            }
-        }
     }
 }

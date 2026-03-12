@@ -11,6 +11,5 @@ namespace SocialNetworkPlatform.Services
         Reel? Get(Guid id);
         IEnumerable<Reel> GetAll();
         void AddView(Guid reelId, Guid userId);
-        void Delete(Guid id);
     }
 }
