@@ -8,7 +8,7 @@ namespace SocialNetworkPlatform.Models
     /// </summary>
     public class Page : IIdentifiable
     {
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         public string Name { get; set; }
 

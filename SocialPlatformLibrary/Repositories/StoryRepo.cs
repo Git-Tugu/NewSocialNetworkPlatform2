@@ -1,8 +1,13 @@
+using SocialNetworkPlatform.Data;
 using SocialNetworkPlatform.Models;
 
 namespace SocialNetworkPlatform.Repositories
 {
-    public class StoryRepo : InMemoryRepository<Story>
+    /// <summary>
+    /// Repository for stories with SQLite persistence.
+    /// </summary>
+    public class StoryRepo : SqliteStoryRepository
     {
+        public StoryRepo(SqliteContext context) : base(context) { }
     }
 }

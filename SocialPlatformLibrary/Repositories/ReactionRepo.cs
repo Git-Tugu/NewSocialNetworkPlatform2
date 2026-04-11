@@ -1,11 +1,13 @@
+using SocialNetworkPlatform.Data;
 using SocialNetworkPlatform.Models;
 
 namespace SocialNetworkPlatform.Repositories
 {
     /// <summary>
-    /// In-memory repository for reactions.
+    /// Repository for reactions with SQLite persistence.
     /// </summary>
-    public class ReactionRepo : InMemoryRepository<Reaction>
+    public class ReactionRepo : SqliteReactionRepository
     {
+        public ReactionRepo(SqliteContext context) : base(context) { }
     }
 }

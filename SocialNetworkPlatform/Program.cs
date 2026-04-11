@@ -5,10 +5,10 @@ using SocialNetworkPlatform.DTOs;
 using SocialNetworkPlatform.Enums;
 using SocialNetworkPlatform.Models;
 
-var platform = new Platform();
+using var platform = new Platform();
 bool running = true;
 
-PrintHeader("SocialNetworkPlatform - Interactive Example");
+PrintHeader("SocialNetworkPlatform - Interactive Example with SQLite");
 
 while (running)
 {
@@ -169,9 +169,9 @@ void RunCommentAndReactionExample()
 
     var users = new[]
     {
-        platform.UserService.Create("Alice", "Alice", 25),
-        platform.UserService.Create("Bob", "Bob", 30),
-        platform.UserService.Create("Charlie", "Charlie", 28)
+        platform.UserService.Create("alice_new", "Alice", 25),
+        platform.UserService.Create("bob_new", "Bob", 30),
+        platform.UserService.Create("charlie_new", "Charlie", 28)
     };
 
     Console.WriteLine("Creating content...");
@@ -238,3 +238,4 @@ System.Collections.Generic.IEnumerable<string> GetFriendNames(User user)
 {
     return user.FriendIds.Select(id => platform.UserService.Get(id)?.DisplayName ?? "Unknown").Where(n => n != null);
 }
+

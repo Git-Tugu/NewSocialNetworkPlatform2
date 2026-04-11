@@ -1,8 +1,13 @@
+using SocialNetworkPlatform.Data;
 using SocialNetworkPlatform.Models;
 
 namespace SocialNetworkPlatform.Repositories
 {
-    public class ReelRepo : InMemoryRepository<Reel>
+    /// <summary>
+    /// Repository for reels with SQLite persistence.
+    /// </summary>
+    public class ReelRepo : SqliteReelRepository
     {
+        public ReelRepo(SqliteContext context) : base(context) { }
     }
 }

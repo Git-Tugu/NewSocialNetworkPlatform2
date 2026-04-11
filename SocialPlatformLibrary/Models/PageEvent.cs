@@ -13,37 +13,37 @@ namespace SocialNetworkPlatform.Models
     public class PageEvent : IIdentifiable, ICommentable, IReactable
     {
         /// <inheritdoc />
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// The owning page id.
         /// </summary>
-        public Guid PageId { get; }
+        public Guid PageId { get; set; }
 
         /// <summary>
         /// Event title.
         /// </summary>
-        public string Title { get; }
+        public string Title { get; set; }
 
         /// <summary>
         /// Event description.
         /// </summary>
-        public string Description { get; }
+        public string Description { get; set; }
 
         /// <summary>
         /// Start time (UTC).
         /// </summary>
-        public DateTime StartsAt { get; }
+        public DateTime StartsAt { get; set; }
 
         /// <summary>
         /// End time (UTC).
         /// </summary>
-        public DateTime EndsAt { get; }
+        public DateTime EndsAt { get; set; }
 
         /// <summary>
         /// Event location.
         /// </summary>
-        public string Location { get; }
+        public string Location { get; set; }
 
         /// <summary>
         /// Users attending the event.
@@ -59,6 +59,11 @@ namespace SocialNetworkPlatform.Models
         /// Reactions attached to this event.
         /// </summary>
         public List<Guid> ReactionIds { get; } = new();
+
+        /// <summary>
+        /// Parameterless constructor for deserialization.
+        /// </summary>
+        public PageEvent() { }
 
         /// <summary>
         /// Internal constructor to ensure only code in this assembly (e.g. <see cref="Page"/>)

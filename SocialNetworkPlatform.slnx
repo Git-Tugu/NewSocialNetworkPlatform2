@@ -1,5 +1,9 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+  </Folder>
   <Project Path="Facebook_copy/Facebook_copy.csproj" Id="ec3748a4-0da5-4b1d-a3c9-776862b4a17a" />
+  <Project Path="RepositoryTest/RepositoryTest.csproj" Id="a0c11dcc-1f8b-49eb-bac9-b145bea1fb8d" />
   <Project Path="SocialNetworkPlatform/SocialNetworkPlatform.csproj" />
   <Project Path="SocialPlatformLibrary/SocialPlatformLibrary.csproj" Id="0a76cc08-b046-4454-bc00-4c67dd6831a2" />
 </Solution>

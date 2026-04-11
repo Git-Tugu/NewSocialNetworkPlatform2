@@ -9,7 +9,7 @@ namespace SocialNetworkPlatform.Models
     public abstract class ContentItem : IIdentifiable
     {
         /// <inheritdoc />
-        public Guid Id { get; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <summary>
         /// Author user id.
@@ -19,6 +19,6 @@ namespace SocialNetworkPlatform.Models
         /// <summary>
         /// UTC creation time.
         /// </summary>
-        public DateTime CreatedAt { get; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

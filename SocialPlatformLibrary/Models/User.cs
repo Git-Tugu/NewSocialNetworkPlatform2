@@ -12,7 +12,7 @@ namespace SocialNetworkPlatform.Models
         private readonly HashSet<Guid> _friendIds;
 
         /// <inheritdoc />
-        public Guid Id { get; private set; } = Guid.NewGuid();
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         /// <inheritdoc />
         public string Username { get; set; }

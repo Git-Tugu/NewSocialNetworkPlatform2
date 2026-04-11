@@ -1,11 +1,13 @@
+using SocialNetworkPlatform.Data;
 using SocialNetworkPlatform.Models;
 
 namespace SocialNetworkPlatform.Repositories
 {
     /// <summary>
-    /// In-memory repository for comments.
+    /// Repository for comments with SQLite persistence.
     /// </summary>
-    public class CommentRepo : InMemoryRepository<Comment>
+    public class CommentRepo : SqliteCommentRepository
     {
+        public CommentRepo(SqliteContext context) : base(context) { }
     }
 }
